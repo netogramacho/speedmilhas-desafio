@@ -11,7 +11,9 @@ import { AppModule } from './app.module';
  */
 describe('AppModule', () => {
   it('compila e inicializa', async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
 
     expect(moduleRef).toBeDefined();
 
