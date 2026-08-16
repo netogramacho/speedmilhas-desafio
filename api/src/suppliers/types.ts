@@ -16,13 +16,14 @@ export interface Quote {
   supplier: SupplierId;
 }
 
-export type SupplierFailureReason = 'timeout' | 'http_error' | 'unknown_error';
+export type SupplierFailureReason =
+  'timeout' | 'http_error' | 'unknown_error' | 'rate_limited';
 
 export interface SupplierFailure {
   supplier: SupplierId;
   reason: SupplierFailureReason;
   message: string;
-  httpStatus?: number; // presente só quando reason === 'http_error'
+  httpStatus?: number; // presente quando reason === 'http_error' ou 'rate_limited' (429)
 }
 
 export type SupplierQuoteResult =
