@@ -228,6 +228,29 @@ describe('SupplierBClient', () => {
       expect(httpService.get).toHaveBeenCalledTimes(2);
     });
 
+    it('orçamento suficiente, retry falha com timeout: resultado final reflete a última tentativa (não rate_limited)', async () => {
+      jest
+        .spyOn(Date, 'now')
+        .mockReturnValueOnce(1000)
+        .mockReturnValueOnce(1100)
+        .mockReturnValue(1200);
+
+      httpService.get
+        .mockReturnValueOnce(
+          throwError(() => axiosErrorWithResponse(429, { 'retry-after': '1' })),
+        )
+        .mockReturnValueOnce(throwError(() => axiosTimeoutError()));
+
+      const result = await client.getQuotes(query);
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.failure.reason).toBe('timeout');
+        expect(result.failure.httpStatus).toBeUndefined();
+      }
+      expect(httpService.get).toHaveBeenCalledTimes(2);
+    });
+
     it('orçamento suficiente, retry também 429: resultado final rate_limited, nunca uma 3ª chamada', async () => {
       jest
         .spyOn(Date, 'now')

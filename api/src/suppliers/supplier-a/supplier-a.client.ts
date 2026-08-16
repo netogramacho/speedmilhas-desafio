@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
-import { AxiosError } from 'axios';
+import { isAxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 
 import {
@@ -64,7 +64,7 @@ export class SupplierAClient {
   private classifyFailure(err: unknown): SupplierFailure {
     const message = err instanceof Error ? err.message : String(err);
 
-    if (this.isAxiosError(err)) {
+    if (isAxiosError(err)) {
       if (err.code === 'ECONNABORTED') {
         return { supplier: SUPPLIER_ID, reason: 'timeout', message };
       }
@@ -80,13 +80,5 @@ export class SupplierAClient {
     }
 
     return { supplier: SUPPLIER_ID, reason: 'unknown_error', message };
-  }
-
-  private isAxiosError(err: unknown): err is AxiosError {
-    return (
-      typeof err === 'object' &&
-      err !== null &&
-      (err as AxiosError).isAxiosError === true
-    );
   }
 }

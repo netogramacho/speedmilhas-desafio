@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AxiosError } from 'axios';
+import { AxiosError, isAxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 
 import {
@@ -50,7 +50,7 @@ export class SupplierBClient {
 
       return this.buildSuccess(response.data, startedAt, false);
     } catch (err) {
-      if (this.isAxiosError(err) && err.response?.status === 429) {
+      if (isAxiosError(err) && err.response?.status === 429) {
         return this.handleRateLimited(err, query, startedAt);
       }
 
@@ -161,18 +161,13 @@ export class SupplierBClient {
   private classifyFailure(err: unknown): SupplierFailure {
     const message = err instanceof Error ? err.message : String(err);
 
-    if (this.isAxiosError(err)) {
+    if (isAxiosError(err)) {
       if (err.code === 'ECONNABORTED') {
         return { supplier: SUPPLIER_ID, reason: 'timeout', message };
       }
 
       if (err.response?.status === 429) {
-        return {
-          supplier: SUPPLIER_ID,
-          reason: 'rate_limited',
-          message,
-          httpStatus: 429,
-        };
+        return this.rateLimitedFailure(err);
       }
 
       if (err.response) {
@@ -210,13 +205,5 @@ export class SupplierBClient {
   /** Espera assíncrona usada no retry do 429. Método de instância para ser mockável em teste. */
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  private isAxiosError(err: unknown): err is AxiosError {
-    return (
-      typeof err === 'object' &&
-      err !== null &&
-      (err as AxiosError).isAxiosError === true
-    );
   }
 }
