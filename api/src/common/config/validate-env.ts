@@ -5,23 +5,29 @@ export interface ValidatedEnv extends Record<string, unknown> {
   SUPPLIERS_BASE_URL: string;
   SUPPLIER_TIMEOUT_MS: number;
   SEARCH_TOTAL_TIMEOUT_MS: number;
+  DATABASE_URL: string;
 }
 
 /**
  * Usada por `ConfigModule.forRoot({ validate: validateEnv })`.
  *
- * Falha rápido (erro no boot da aplicação) se `SUPPLIERS_BASE_URL` estiver ausente, em vez de
- * deixar `undefined` chegar silenciosamente até o axios. Normaliza `SUPPLIER_TIMEOUT_MS` e
- * `SEARCH_TOTAL_TIMEOUT_MS` para números positivos, com default de 5000ms e 6000ms
- * respectivamente.
- *
- * `DATABASE_URL` não entra nesta validação (fica para quando o Prisma for tocado, DSM-6+).
+ * Falha rápido (erro no boot da aplicação) se `SUPPLIERS_BASE_URL` ou `DATABASE_URL` estiverem
+ * ausentes, em vez de deixar `undefined` chegar silenciosamente até o axios/Prisma. Normaliza
+ * `SUPPLIER_TIMEOUT_MS` e `SEARCH_TOTAL_TIMEOUT_MS` para números positivos, com default de
+ * 5000ms e 6000ms respectivamente.
  */
 export function validateEnv(config: Record<string, unknown>): ValidatedEnv {
   const suppliersBaseUrl = config.SUPPLIERS_BASE_URL;
   if (typeof suppliersBaseUrl !== 'string' || suppliersBaseUrl.trim() === '') {
     throw new Error(
       'Missing required env var SUPPLIERS_BASE_URL (see api/.env.example)',
+    );
+  }
+
+  const databaseUrl = config.DATABASE_URL;
+  if (typeof databaseUrl !== 'string' || databaseUrl.trim() === '') {
+    throw new Error(
+      'Missing required env var DATABASE_URL (see api/.env.example)',
     );
   }
 
@@ -54,5 +60,6 @@ export function validateEnv(config: Record<string, unknown>): ValidatedEnv {
     SUPPLIERS_BASE_URL: suppliersBaseUrl,
     SUPPLIER_TIMEOUT_MS: supplierTimeoutMs,
     SEARCH_TOTAL_TIMEOUT_MS: searchTotalTimeoutMs,
+    DATABASE_URL: databaseUrl,
   };
 }
