@@ -9,13 +9,16 @@ import {
   SupplierId,
   SupplierQuoteQuery,
   SupplierQuoteResult,
-} from '../suppliers/types';
+} from '../../domain/suppliers/types';
+import {
+  AggregatedSearchResult,
+  SupplierOutcome,
+} from '../../domain/search/types';
 import {
   GLOBAL_TIMEOUT_MARKER,
   raceAgainstDeadline,
-} from './race-against-deadline';
-import { sortQuotes } from './sort-quotes';
-import { AggregatedSearchResult, SupplierOutcome } from './types';
+} from '../../domain/search/race-against-deadline';
+import { sortQuotes } from '../../domain/search/sort-quotes';
 
 type RacedResult = SupplierQuoteResult | typeof GLOBAL_TIMEOUT_MARKER;
 

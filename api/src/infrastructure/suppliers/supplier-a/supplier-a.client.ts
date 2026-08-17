@@ -9,9 +9,9 @@ import {
   SupplierId,
   SupplierQuoteQuery,
   SupplierQuoteResult,
-} from '../types';
-import { normalizeSupplierA } from './supplier-a.normalizer';
-import { SupplierARawResponse } from './supplier-a.types';
+} from '../../../domain/suppliers/types';
+import { normalizeSupplierA } from '../../../domain/suppliers/supplier-a/supplier-a.normalizer';
+import { SupplierARawResponse } from '../../../domain/suppliers/supplier-a/supplier-a.types';
 
 const SUPPLIER_ID: SupplierId = 'supplier-a';
 const QUOTES_ENDPOINT = '/supplier-a/quotes';

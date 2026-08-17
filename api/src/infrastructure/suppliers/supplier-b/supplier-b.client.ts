@@ -10,9 +10,9 @@ import {
   SupplierId,
   SupplierQuoteQuery,
   SupplierQuoteResult,
-} from '../types';
-import { normalizeSupplierB } from './supplier-b.normalizer';
-import { SupplierBRawResponse } from './supplier-b.types';
+} from '../../../domain/suppliers/types';
+import { normalizeSupplierB } from '../../../domain/suppliers/supplier-b/supplier-b.normalizer';
+import { SupplierBRawResponse } from '../../../domain/suppliers/supplier-b/supplier-b.types';
 
 const SUPPLIER_ID: SupplierId = 'supplier-b';
 const SEARCH_ENDPOINT = '/supplier-b/search';

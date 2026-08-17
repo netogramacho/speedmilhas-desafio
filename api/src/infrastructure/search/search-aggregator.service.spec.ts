@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import { SupplierAClient } from '../suppliers/supplier-a/supplier-a.client';
 import { SupplierBClient } from '../suppliers/supplier-b/supplier-b.client';
 import { SupplierCClient } from '../suppliers/supplier-c/supplier-c.client';
-import { Quote, SupplierQuoteResult } from '../suppliers/types';
+import { Quote, SupplierQuoteResult } from '../../domain/suppliers/types';
 import { SearchAggregatorService } from './search-aggregator.service';
 
 const SEARCH_TOTAL_TIMEOUT_MS = 6000;
