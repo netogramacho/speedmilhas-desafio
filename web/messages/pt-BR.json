@@ -1,0 +1,36 @@
+{
+  "search": {
+    "form": {
+      "title": "Buscar cotações",
+      "origin": "Origem",
+      "destination": "Destino",
+      "date": "Data",
+      "selectPlaceholder": "Selecione",
+      "submit": "Buscar",
+      "submitLoading": "Buscando...",
+      "errors": {
+        "originRequired": "Selecione a origem.",
+        "destinationRequired": "Selecione o destino.",
+        "dateRequired": "Selecione a data."
+      }
+    },
+    "states": {
+      "loading": "Buscando cotações...",
+      "partialWarning": "Nem todos os fornecedores responderam a tempo.",
+      "partialEmpty": "Não encontramos cotações para esse destino com os fornecedores que responderam.",
+      "empty": "Nenhum resultado encontrado para essa rota e data.",
+      "error": "Não foi possível buscar as cotações agora.",
+      "retry": "Tentar novamente"
+    },
+    "suppliers": {
+      "supplier-a": "Fornecedor A",
+      "supplier-b": "Fornecedor B",
+      "supplier-c": "Fornecedor C"
+    },
+    "quote": {
+      "miles": "{miles} milhas",
+      "taxes": "+ R$ {taxes} de taxas",
+      "carrier": "Companhia: {carrier}"
+    }
+  }
+}
