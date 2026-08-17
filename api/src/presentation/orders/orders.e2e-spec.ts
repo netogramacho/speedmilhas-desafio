@@ -6,7 +6,6 @@ import { AppModule } from '../../app.module';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { OrderResponseDto } from './dto/order-response.dto';
 
-
 const VALID_TEST_CPF = '52998224725';
 const INVALID_CHECK_DIGIT_CPF = '52998224735';
 
@@ -322,6 +321,27 @@ describe('POST /orders (e2e)', () => {
           name: 'Maria da Silva',
           document: INVALID_CHECK_DIGIT_CPF,
         },
+      });
+    expect(invalidResponse.status).toBe(400);
+
+    const validResponse = await request(app.getHttpServer())
+      .post('/orders')
+      .send(validBody(idempotencyKey));
+    expect(validResponse.status).toBe(201);
+
+    const orderCount = await prisma.order.count({ where: { idempotencyKey } });
+    expect(orderCount).toBe(1);
+  });
+
+  it('AC5 (reaproveitamento de idempotencyKey após tentativa inválida por passageiro incompleto): tentativa seguinte com dados válidos segue o caminho normal (201)', async () => {
+    const idempotencyKey = 'orders-e2e-ac5-retry-passenger';
+
+    const invalidResponse = await request(app.getHttpServer())
+      .post('/orders')
+      .send({
+        quoteId: 'quote-abc123',
+        idempotencyKey,
+        passenger: { name: 'Maria da Silva' },
       });
     expect(invalidResponse.status).toBe(400);
 

@@ -100,6 +100,13 @@ describe('CreateOrderRequestDto', () => {
     expect(error).toBeDefined();
   });
 
+  it('quote: null: erro no campo quote (mesmo comportamento de quote ausente)', async () => {
+    const errors = await validateBody({ ...VALID_BODY, quote: null });
+
+    const error = errors.find((e) => e.property === 'quote');
+    expect(error).toBeDefined();
+  });
+
   it('quote.miles/quote.taxesBrl/quote.carrier ausentes: erro aninhado com children', async () => {
     const errors = await validateBody(withQuote(VALID_BODY, {}));
 
@@ -212,6 +219,18 @@ describe('CreateOrderRequestDto', () => {
       );
 
       expect(codes['quote.taxesBrl']).toBe('FIELD_REQUIRED');
+    });
+
+    it('quote.miles = "abc" (dispara isInt e min juntos): FIELD_REQUIRED, não INVALID_QUOTE_VALUE', async () => {
+      const codes = await codesFor(
+        withQuote(VALID_BODY, {
+          miles: 'abc',
+          taxesBrl: 38.5,
+          carrier: 'GOL',
+        }),
+      );
+
+      expect(codes['quote.miles']).toBe('FIELD_REQUIRED');
     });
   });
 });
