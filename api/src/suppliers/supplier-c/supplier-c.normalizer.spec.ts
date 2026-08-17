@@ -79,6 +79,18 @@ describe('normalizeSupplierC', () => {
     expect(warnSpy).toHaveBeenCalled();
   });
 
+  it('aceita item com fee: 0 (taxa zero é uma cotação plausível, diferente de milhas zero)', () => {
+    const raw: SupplierCRawResponse = {
+      data: [{ price_miles: 12000, fee: 0, airline_code: 'AD' }],
+    };
+
+    const quotes = normalizeSupplierC(raw, silentLogger().logger);
+
+    expect(quotes).toEqual([
+      { miles: 12000, taxesBrl: 0, carrier: 'AZUL', supplier: 'supplier-c' },
+    ]);
+  });
+
   it('descarta item com price_miles zero ou negativo', () => {
     const raw: SupplierCRawResponse = {
       data: [

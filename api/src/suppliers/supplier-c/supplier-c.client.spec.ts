@@ -31,6 +31,16 @@ function axiosTimeoutError(): AxiosError {
   );
 }
 
+function axiosNetworkErrorWithoutResponse(): AxiosError {
+  return new AxiosError(
+    'Network Error',
+    'ERR_NETWORK',
+    undefined,
+    undefined,
+    undefined,
+  );
+}
+
 describe('SupplierCClient', () => {
   let httpService: { post: jest.Mock };
   let client: SupplierCClient;
@@ -189,6 +199,33 @@ describe('SupplierCClient', () => {
     if (!result.ok) {
       expect(result.failure.reason).toBe('unknown_error');
       expect(result.failure.message).toBe('network down');
+    }
+  });
+
+  it('erro de rede do axios (AxiosError sem response e sem ECONNABORTED): devolve reason unknown_error', async () => {
+    httpService.post.mockReturnValue(
+      throwError(() => axiosNetworkErrorWithoutResponse()),
+    );
+
+    const result = await client.getQuotes(query);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.failure.reason).toBe('unknown_error');
+      expect(result.failure.httpStatus).toBeUndefined();
+      expect(result.failure.message).toBe('Network Error');
+    }
+  });
+
+  it('erro não-Error lançado (valor cru, ex. string): devolve reason unknown_error com message convertida via String()', async () => {
+    httpService.post.mockReturnValue(throwError(() => 'boom'));
+
+    const result = await client.getQuotes(query);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.failure.reason).toBe('unknown_error');
+      expect(result.failure.message).toBe('boom');
     }
   });
 
