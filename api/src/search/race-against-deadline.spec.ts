@@ -27,6 +27,12 @@ describe('raceAgainstDeadline', () => {
     expect(onLateArrival).not.toHaveBeenCalled();
   });
 
+  it('promise resolve antes do deadline: o timer interno é limpo (não fica pendente no event loop)', async () => {
+    await raceAgainstDeadline<string>(Promise.resolve('value'), 1000);
+
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
   it('deadline vence antes da promise: devolve GLOBAL_TIMEOUT_MARKER e loga chegada tardia quando a promise resolve depois', async () => {
     let resolvePromise!: (value: string) => void;
     const promise = new Promise<string>((resolve) => {

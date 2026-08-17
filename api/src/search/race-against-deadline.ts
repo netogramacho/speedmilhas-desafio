@@ -13,11 +13,14 @@ export function raceAgainstDeadline<T>(
   deadlineMs: number,
   onLateArrival?: (result: T) => void,
 ): Promise<T | typeof GLOBAL_TIMEOUT_MARKER> {
+  let timeoutId: ReturnType<typeof setTimeout>;
   const timeout = new Promise<typeof GLOBAL_TIMEOUT_MARKER>((resolve) => {
-    setTimeout(() => resolve(GLOBAL_TIMEOUT_MARKER), deadlineMs);
+    timeoutId = setTimeout(() => resolve(GLOBAL_TIMEOUT_MARKER), deadlineMs);
   });
 
   return Promise.race([promise, timeout]).then((result) => {
+    clearTimeout(timeoutId);
+
     if (result === GLOBAL_TIMEOUT_MARKER && onLateArrival) {
       void promise.then(onLateArrival);
     }
