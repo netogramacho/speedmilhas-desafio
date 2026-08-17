@@ -34,7 +34,7 @@ function spawnInstance(port: number): ChildProcess {
     cwd: API_ROOT,
     env: { ...process.env, PORT: String(port) },
     detached: true,
-    stdio: 'pipe',
+    stdio: ['ignore', 'ignore', 'ignore'],
   });
 }
 
