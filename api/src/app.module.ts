@@ -5,6 +5,7 @@ import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { validateEnv } from './common/config/validate-env';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { validationExceptionFactory } from './common/validation/validation-exception-factory';
+import { OrdersModule } from './infrastructure/orders/orders.module';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { SearchModule } from './infrastructure/search/search.module';
 import { SupplierAModule } from './infrastructure/suppliers/supplier-a/supplier-a.module';
@@ -19,6 +20,7 @@ import { SupplierCModule } from './infrastructure/suppliers/supplier-c/supplier-
     SupplierBModule,
     SupplierCModule,
     SearchModule,
+    OrdersModule,
   ],
   controllers: [],
   providers: [

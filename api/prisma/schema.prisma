@@ -13,14 +13,16 @@ enum OrderStatus {
 }
 
 model Order {
-  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  quoteId        String
-  idempotencyKey String      @unique
-  status         OrderStatus @default(PENDING)
-  passengerId    String      @unique @db.Uuid
-  passenger      Passenger   @relation(fields: [passengerId], references: [id], onDelete: Restrict)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quoteId         String
+  idempotencyKey  String        @unique
+  status          OrderStatus   @default(PENDING)
+  passengerId     String        @unique @db.Uuid
+  passenger       Passenger     @relation(fields: [passengerId], references: [id], onDelete: Restrict)
+  quoteSnapshotId String        @unique @db.Uuid
+  quoteSnapshot   QuoteSnapshot @relation(fields: [quoteSnapshotId], references: [id], onDelete: Restrict)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 // FK fica em Order (passengerId), não em Passenger: apagar um Passenger enquanto algum Order o
@@ -31,4 +33,15 @@ model Passenger {
   document  String
   order     Order?
   createdAt DateTime @default(now())
+}
+
+/// Retrato congelado da cotação escolhida no momento da criação do Order (DSM-7, Revisão 2) — não
+/// uma entidade de negócio com ciclo de vida próprio, nunca consultada fora do Order dono.
+model QuoteSnapshot {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  miles         Int
+  taxesBrlCents Int
+  carrier       String
+  order         Order?
+  createdAt     DateTime @default(now())
 }

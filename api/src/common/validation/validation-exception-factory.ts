@@ -34,6 +34,9 @@ function constraintCode(constraintKey: string): string {
 const CONSTRAINT_PRIORITY = [
   'isNotEmpty',
   'isString',
+  'isNotEmptyObject',
+  'isInt',
+  'isNumber',
   'isIn',
   'isDifferentFrom',
   'matches',

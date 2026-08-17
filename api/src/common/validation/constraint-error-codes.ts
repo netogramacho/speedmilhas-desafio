@@ -15,4 +15,9 @@ export const CONSTRAINT_ERROR_CODES: Record<string, string> = {
   isValidCalendarDate: 'INVALID_DATE',
   isNotEmpty: 'FIELD_REQUIRED',
   isString: 'FIELD_REQUIRED',
+  isNotEmptyObject: 'FIELD_REQUIRED',
+  isValidCpf: 'INVALID_CPF',
+  isInt: 'FIELD_REQUIRED',
+  isNumber: 'FIELD_REQUIRED',
+  min: 'INVALID_QUOTE_VALUE',
 };

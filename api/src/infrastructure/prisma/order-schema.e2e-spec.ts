@@ -28,15 +28,28 @@ describe('Order/Passenger schema (e2e)', () => {
   });
 
   afterEach(async () => {
-    // Order → Passenger (onDelete: Restrict): precisa apagar os Order de teste primeiro, senão o
-    // Passenger ainda referenciado rejeita a exclusão por violação de FK.
+    const orders = await prisma.order.findMany({
+      where: { idempotencyKey: { startsWith: 'e2e-' } },
+      select: { quoteSnapshotId: true },
+    });
+    const quoteSnapshotIds = orders.map((order) => order.quoteSnapshotId);
+
     await prisma.order.deleteMany({
       where: { idempotencyKey: { startsWith: 'e2e-' } },
     });
     await prisma.passenger.deleteMany({
       where: { document: { startsWith: 'e2e-' } },
     });
+    await prisma.quoteSnapshot.deleteMany({
+      where: { id: { in: quoteSnapshotIds } },
+    });
   });
+
+  const quoteSnapshotData = {
+    miles: 10000,
+    taxesBrlCents: 5000,
+    carrier: 'GOL',
+  };
 
   afterAll(async () => {
     await app.close();
@@ -48,6 +61,7 @@ describe('Order/Passenger schema (e2e)', () => {
         quoteId: 'quote-1',
         idempotencyKey: 'e2e-key-1',
         passenger: { create: { name: 'Fulano de Tal', document: 'e2e-doc-1' } },
+        quoteSnapshot: { create: quoteSnapshotData },
       },
     });
 
@@ -57,6 +71,7 @@ describe('Order/Passenger schema (e2e)', () => {
           quoteId: 'quote-2',
           idempotencyKey: 'e2e-key-1',
           passenger: { create: { name: 'Outro Nome', document: 'e2e-doc-1b' } },
+          quoteSnapshot: { create: quoteSnapshotData },
         },
       }),
     ).rejects.toMatchObject({ code: 'P2002' });
@@ -73,6 +88,7 @@ describe('Order/Passenger schema (e2e)', () => {
           passenger: {
             create: { name: 'Passageiro A', document: 'e2e-doc-2' },
           },
+          quoteSnapshot: { create: quoteSnapshotData },
         },
       }),
       prisma.order.create({
@@ -82,6 +98,7 @@ describe('Order/Passenger schema (e2e)', () => {
           passenger: {
             create: { name: 'Passageiro B', document: 'e2e-doc-2' },
           },
+          quoteSnapshot: { create: quoteSnapshotData },
         },
       }),
     ]);
@@ -111,6 +128,7 @@ describe('Order/Passenger schema (e2e)', () => {
         passenger: {
           create: { name: 'Maria da Silva', document: 'e2e-doc-ac2' },
         },
+        quoteSnapshot: { create: quoteSnapshotData },
       },
     });
 
@@ -128,12 +146,19 @@ describe('Order/Passenger schema (e2e)', () => {
     const passenger = await prisma.passenger.create({
       data: { name: 'Passageiro Único', document: 'e2e-doc-1to1' },
     });
+    const quoteSnapshotA = await prisma.quoteSnapshot.create({
+      data: quoteSnapshotData,
+    });
+    const quoteSnapshotB = await prisma.quoteSnapshot.create({
+      data: quoteSnapshotData,
+    });
 
     await prisma.order.create({
       data: {
         quoteId: 'quote-1to1-a',
         idempotencyKey: 'e2e-key-1to1-a',
         passengerId: passenger.id,
+        quoteSnapshotId: quoteSnapshotA.id,
       },
     });
 
@@ -143,9 +168,15 @@ describe('Order/Passenger schema (e2e)', () => {
           quoteId: 'quote-1to1-b',
           idempotencyKey: 'e2e-key-1to1-b',
           passengerId: passenger.id,
+          quoteSnapshotId: quoteSnapshotB.id,
         },
       }),
     ).rejects.toMatchObject({ code: 'P2002' });
+
+    // quoteSnapshotB nunca chega a ser referenciado por nenhum Order (create rejeitou antes) — o
+    // afterEach deste arquivo só limpa QuoteSnapshot alcançável a partir de um Order existente,
+    // então esta linha órfã precisa ser apagada aqui mesmo.
+    await prisma.quoteSnapshot.delete({ where: { id: quoteSnapshotB.id } });
   });
 
   it('onDelete: Restrict impede apagar um Passenger enquanto algum Order o referencia', async () => {
@@ -156,6 +187,7 @@ describe('Order/Passenger schema (e2e)', () => {
         passenger: {
           create: { name: 'Passageiro Restrict', document: 'e2e-doc-restrict' },
         },
+        quoteSnapshot: { create: quoteSnapshotData },
       },
       include: { passenger: true },
     });
@@ -181,11 +213,18 @@ describe('Order/Passenger schema (e2e)', () => {
         passenger: {
           create: { name: 'Passageiro Ordem', document: 'e2e-doc-order' },
         },
+        quoteSnapshot: { create: quoteSnapshotData },
       },
     });
 
     await prisma.order.delete({ where: { id: created.id } });
     await prisma.passenger.delete({ where: { id: created.passengerId } });
+    // Order já apagado neste ponto — o afterEach do describe não o encontra mais para capturar
+    // quoteSnapshotId, então a limpeza do QuoteSnapshot (agora órfão, mesmo trade-off aceito em
+    // claude/specs/DSM-7/spec.md) precisa acontecer aqui.
+    await prisma.quoteSnapshot.delete({
+      where: { id: created.quoteSnapshotId },
+    });
 
     const passenger = await prisma.passenger.findUnique({
       where: { id: created.passengerId },
@@ -201,6 +240,7 @@ describe('Order/Passenger schema (e2e)', () => {
         passenger: {
           create: { name: 'Passageiro AC3', document: 'e2e-doc-ac3' },
         },
+        quoteSnapshot: { create: quoteSnapshotData },
       },
     });
 
@@ -225,6 +265,7 @@ describe('Order/Passenger schema (e2e)', () => {
         passenger: {
           create: { name: 'Passageiro Uuid', document: 'e2e-doc-uuid' },
         },
+        quoteSnapshot: { create: quoteSnapshotData },
       },
       include: { passenger: true },
     });
