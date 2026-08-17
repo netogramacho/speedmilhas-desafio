@@ -117,4 +117,17 @@ describe('mapAggregatedResultToResponse', () => {
       'supplier-c': 'failed',
     });
   });
+
+  it('DOCUMENTA LACUNA: outcomes com menos de 3 itens gera suppliers incompleto (o contrato Record<SupplierId, ...> não é garantido em runtime) — não deve acontecer hoje, pois AggregatedSearchResult.outcomes (DSM-4) sempre entrega os 3 SupplierId; ver achado 3 de claude/specs/DSM-5/review.md', () => {
+    const result: AggregatedSearchResult = {
+      quotes: [],
+      outcomes: [outcome({ supplier: 'supplier-a', status: 'ok' })],
+    };
+
+    const response = mapAggregatedResultToResponse(result);
+
+    expect(Object.keys(response.suppliers)).toEqual(['supplier-a']);
+    expect(response.suppliers).not.toHaveProperty('supplier-b');
+    expect(response.suppliers).not.toHaveProperty('supplier-c');
+  });
 });

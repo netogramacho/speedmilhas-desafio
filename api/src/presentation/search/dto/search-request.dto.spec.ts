@@ -1,6 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 
+import { validationExceptionFactory } from '../../../common/validation/validation-exception-factory';
 import { SearchRequestDto } from './search-request.dto';
 
 const VALID_BODY = { origin: 'GRU', destination: 'GIG', date: '2026-08-15' };
@@ -8,6 +9,20 @@ const VALID_BODY = { origin: 'GRU', destination: 'GIG', date: '2026-08-15' };
 async function validateBody(body: Record<string, unknown>) {
   const dto = plainToInstance(SearchRequestDto, body);
   return validate(dto);
+}
+
+/** Roda o DTO real através de `validationExceptionFactory`, de ponta a ponta — é assim que o
+ * `ValidationPipe` global (`app.module.ts`) monta o `code` de fato entregue ao cliente. */
+async function codesFor(
+  body: Record<string, unknown>,
+): Promise<Record<string, string>> {
+  const errors = await validateBody(body);
+  const response = validationExceptionFactory(errors).getResponse() as {
+    fields: { field: string; code: string }[];
+  };
+  return Object.fromEntries(
+    response.fields.map((field) => [field.field, field.code]),
+  );
 }
 
 function omit(
@@ -94,5 +109,63 @@ describe('SearchRequestDto', () => {
 
     const dateError = errors.find((e) => e.property === 'date');
     expect(dateError).toBeUndefined();
+  });
+
+  // Ponta a ponta: SearchRequestDto real (plainToInstance + validate()) através de
+  // validationExceptionFactory, confirmando o `code` que de fato chega ao cliente via
+  // ValidationPipe — não só a presença da constraint no objeto do class-validator (achado 1 do
+  // review de DSM-5).
+  describe('code final via validationExceptionFactory', () => {
+    it('origin ausente: FIELD_REQUIRED (não AIRPORT_NOT_SUPPORTED)', async () => {
+      const codes = await codesFor(omit(VALID_BODY, 'origin'));
+
+      expect(codes.origin).toBe('FIELD_REQUIRED');
+    });
+
+    it('destination ausente: FIELD_REQUIRED (não ORIGIN_EQUALS_DESTINATION)', async () => {
+      const codes = await codesFor(omit(VALID_BODY, 'destination'));
+
+      expect(codes.destination).toBe('FIELD_REQUIRED');
+    });
+
+    it('date ausente: FIELD_REQUIRED (não INVALID_DATE)', async () => {
+      const codes = await codesFor(omit(VALID_BODY, 'date'));
+
+      expect(codes.date).toBe('FIELD_REQUIRED');
+    });
+
+    it('origin com tipo errado (número): FIELD_REQUIRED', async () => {
+      const codes = await codesFor({ ...VALID_BODY, origin: 123 });
+
+      expect(codes.origin).toBe('FIELD_REQUIRED');
+    });
+
+    it('origin fora de SUPPORTED_AIRPORTS: AIRPORT_NOT_SUPPORTED', async () => {
+      const codes = await codesFor({ ...VALID_BODY, origin: 'XXX' });
+
+      expect(codes.origin).toBe('AIRPORT_NOT_SUPPORTED');
+    });
+
+    it('origin === destination: ORIGIN_EQUALS_DESTINATION', async () => {
+      const codes = await codesFor({
+        ...VALID_BODY,
+        origin: 'GRU',
+        destination: 'GRU',
+      });
+
+      expect(codes.destination).toBe('ORIGIN_EQUALS_DESTINATION');
+    });
+
+    it('date presente mas inexistente no calendário (2026-02-30): INVALID_DATE', async () => {
+      const codes = await codesFor({ ...VALID_BODY, date: '2026-02-30' });
+
+      expect(codes.date).toBe('INVALID_DATE');
+    });
+
+    it('date fora do formato (15-08-2026): INVALID_DATE_FORMAT', async () => {
+      const codes = await codesFor({ ...VALID_BODY, date: '15-08-2026' });
+
+      expect(codes.date).toBe('INVALID_DATE_FORMAT');
+    });
   });
 });

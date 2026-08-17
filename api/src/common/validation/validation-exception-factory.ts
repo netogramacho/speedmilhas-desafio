@@ -22,9 +22,47 @@ function constraintCode(constraintKey: string): string {
 }
 
 /**
+ * Prioridade explícita das constraint keys quando várias disparam ao mesmo tempo no mesmo campo
+ * (caso típico: campo ausente, onde `isNotEmpty`/`isString` e os validadores mais específicos —
+ * `isIn`, `isDifferentFrom`, `matches`, `isValidCalendarDate` — disparam juntos). "Campo ausente" é
+ * logicamente anterior a "campo com valor inválido", por isso os genéricos vêm primeiro.
+ *
+ * Não usamos a ordem de inserção de `error.constraints` (`Object.entries(...)[0]`) porque ela
+ * reflete a ordem de execução dos decorators do `class-validator` — o inverso da ordem declarada
+ * no DTO — que não é um contrato estável para depender.
+ */
+const CONSTRAINT_PRIORITY = [
+  'isNotEmpty',
+  'isString',
+  'isIn',
+  'isDifferentFrom',
+  'matches',
+  'isValidCalendarDate',
+];
+
+/** Escolhe, entre as constraints violadas de um campo, a de maior prioridade (menor índice em
+ * `CONSTRAINT_PRIORITY`). Constraints fora dessa lista caem por último, na ordem em que aparecem
+ * em `constraints`. */
+function pickConstraint(
+  constraints: Record<string, string>,
+): [constraintKey: string, message: string] {
+  const entries = Object.entries(constraints);
+
+  return entries.reduce((chosen, current) => {
+    const chosenPriority = CONSTRAINT_PRIORITY.indexOf(chosen[0]);
+    const currentPriority = CONSTRAINT_PRIORITY.indexOf(current[0]);
+
+    const chosenRank = chosenPriority === -1 ? Infinity : chosenPriority;
+    const currentRank = currentPriority === -1 ? Infinity : currentPriority;
+
+    return currentRank < chosenRank ? current : chosen;
+  }, entries[0]);
+}
+
+/**
  * Achata os `ValidationError` do `class-validator` (recursivo para `children`, embora
- * `SearchRequestDto` seja raso e não precise disso hoje) em uma entrada por campo — a primeira
- * constraint violada de cada campo decide `code`/`message`.
+ * `SearchRequestDto` seja raso e não precise disso hoje) em uma entrada por campo — a constraint
+ * de maior prioridade (`CONSTRAINT_PRIORITY`) de cada campo decide `code`/`message`.
  */
 function flattenErrors(
   errors: ValidationError[],
@@ -38,7 +76,7 @@ function flattenErrors(
       : error.property;
 
     if (error.constraints) {
-      const [constraintKey, message] = Object.entries(error.constraints)[0];
+      const [constraintKey, message] = pickConstraint(error.constraints);
       fields.push({ field, code: constraintCode(constraintKey), message });
     }
 

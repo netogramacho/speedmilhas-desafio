@@ -107,9 +107,42 @@ describe('POST /search (e2e)', () => {
     };
     expect(body.error.code).toBe('VALIDATION_ERROR');
     expect(typeof body.error.message).toBe('string');
-    expect(body.error.fields.some((field) => field.field === 'origin')).toBe(
-      true,
+    const originField = body.error.fields.find(
+      (field) => field.field === 'origin',
     );
+    expect(originField).toBeDefined();
+    // Regressão do achado 1 do review de DSM-5: campo ausente deve mapear para FIELD_REQUIRED,
+    // não para o code do validador mais específico (ex.: AIRPORT_NOT_SUPPORTED).
+    expect(originField?.code).toBe('FIELD_REQUIRED');
+
+    const totalCallsAfter = await fetchTotalCalls();
+    expect(totalCallsAfter).toBe(totalCallsBefore);
+  });
+
+  it('400 sem chamar fornecedor: body com campo extra não declarado no DTO é rejeitado pelo forbidNonWhitelisted', async () => {
+    const totalCallsBefore = await fetchTotalCalls();
+
+    const response = await request(app.getHttpServer()).post('/search').send({
+      origin: 'GRU',
+      destination: 'GIG',
+      date: '2026-08-15',
+      foo: 'bar',
+    });
+
+    expect(response.status).toBe(400);
+
+    const body = response.body as {
+      error: {
+        code: string;
+        message: string;
+        fields: { field: string; code: string; message: string }[];
+      };
+    };
+    expect(body.error.code).toBe('VALIDATION_ERROR');
+    expect(typeof body.error.message).toBe('string');
+    const extraField = body.error.fields.find((field) => field.field === 'foo');
+    expect(extraField).toBeDefined();
+    expect(extraField?.message).toBe('property foo should not exist');
 
     const totalCallsAfter = await fetchTotalCalls();
     expect(totalCallsAfter).toBe(totalCallsBefore);
