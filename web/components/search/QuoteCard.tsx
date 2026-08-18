@@ -24,6 +24,8 @@ export function QuoteCard({ quote, isBestOffer }: QuoteCardProps) {
 
   const nameFieldId = `passenger-name-${quoteId}`;
   const documentFieldId = `passenger-document-${quoteId}`;
+  const nameErrorId = `${nameFieldId}-error`;
+  const documentErrorId = `${documentFieldId}-error`;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -85,11 +87,13 @@ export function QuoteCard({ quote, isBestOffer }: QuoteCardProps) {
               value={state.name}
               disabled={state.status === 'submitting'}
               onChange={(event) => setName(event.target.value)}
+              aria-invalid={Boolean(state.fieldErrors.name)}
+              aria-describedby={state.fieldErrors.name ? nameErrorId : undefined}
               className="mt-1 w-full rounded-md border border-slate-300 p-2 disabled:bg-slate-50 disabled:opacity-50"
             />
             <div className="mt-1 min-h-[1.25rem]">
               {state.fieldErrors.name && (
-                <p className="text-red-700">
+                <p id={nameErrorId} className="text-red-700">
                   {tRoot(resolveFieldErrorMessageKey('name', state.fieldErrors.name))}
                 </p>
               )}
@@ -103,14 +107,17 @@ export function QuoteCard({ quote, isBestOffer }: QuoteCardProps) {
             <input
               id={documentFieldId}
               type="text"
+              inputMode="numeric"
               value={state.document}
               disabled={state.status === 'submitting'}
               onChange={(event) => setDocument(event.target.value)}
+              aria-invalid={Boolean(state.fieldErrors.document)}
+              aria-describedby={state.fieldErrors.document ? documentErrorId : undefined}
               className="mt-1 w-full rounded-md border border-slate-300 p-2 disabled:bg-slate-50 disabled:opacity-50"
             />
             <div className="mt-1 min-h-[1.25rem]">
               {state.fieldErrors.document && (
-                <p className="text-red-700">
+                <p id={documentErrorId} className="text-red-700">
                   {tRoot(resolveFieldErrorMessageKey('document', state.fieldErrors.document))}
                 </p>
               )}

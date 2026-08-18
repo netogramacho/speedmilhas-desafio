@@ -106,9 +106,15 @@ export function useOrderReservation(quote: SearchResponseQuote): UseOrderReserva
       idempotencyKeyRef.current = crypto.randomUUID();
     }
     const idempotencyKey = idempotencyKeyRef.current;
-    const { name, document } = state;
+    const name = state.name.trim();
+    const { document } = state;
 
-    setState((previous) => ({ ...previous, status: 'submitting', fieldErrors: {} }));
+    setState((previous) => ({
+      ...previous,
+      status: 'submitting',
+      fieldErrors: {},
+      errorCode: undefined,
+    }));
 
     createOrder({
       quoteId,

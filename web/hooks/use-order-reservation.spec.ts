@@ -143,6 +143,43 @@ describe('useOrderReservation', () => {
     expect(secondKey).toBe(firstKey);
   });
 
+  it('duas chamadas de confirm() na mesma janela de evento (duplo clique físico) → ambas chamam createOrder com a mesma idempotencyKey', async () => {
+    createOrderMock.mockResolvedValue(mockOrderResponse());
+
+    const { result } = renderHook(() => useOrderReservation(quote));
+
+    fillForm(result, 'Maria da Silva', '52998224725');
+    act(() => {
+      result.current.confirm();
+      result.current.confirm();
+    });
+
+    expect(createOrderMock).toHaveBeenCalledTimes(2);
+    const firstKey = createOrderMock.mock.calls[0][0].idempotencyKey;
+    const secondKey = createOrderMock.mock.calls[1][0].idempotencyKey;
+    expect(secondKey).toBe(firstKey);
+
+    await waitFor(() => {
+      expect(result.current.state.status).toBe('reserved');
+    });
+  });
+
+  it('confirm() trima espaços do nome antes de enviar, mas aceita nome com espaços nas pontas na validação', async () => {
+    createOrderMock.mockResolvedValueOnce(mockOrderResponse());
+
+    const { result } = renderHook(() => useOrderReservation(quote));
+
+    fillForm(result, '  Maria da Silva  ', '52998224725');
+    act(() => {
+      result.current.confirm();
+    });
+
+    await waitFor(() => {
+      expect(result.current.state.status).toBe('reserved');
+    });
+    expect(createOrderMock.mock.calls[0][0].passenger.name).toBe('Maria da Silva');
+  });
+
   it('createOrder rejeita com CreateOrderError com fields em passenger.document → volta para editing com fieldErrors.document', async () => {
     createOrderMock.mockRejectedValueOnce(
       new CreateOrderError('VALIDATION_ERROR', 'inválido', [
