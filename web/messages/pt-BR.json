@@ -28,9 +28,37 @@
       "supplier-c": "Fornecedor C"
     },
     "quote": {
-      "miles": "{miles} milhas",
-      "taxes": "+ R$ {taxes} de taxas",
-      "carrier": "Companhia: {carrier}"
+      "milesLabel": "milhas",
+      "taxes": "+ {taxes} de taxas",
+      "carrier": "Companhia: {carrier}",
+      "bestOffer": "Melhor oferta"
+    }
+  },
+  "orders": {
+    "reserveButton": "Reservar",
+    "form": {
+      "name": "Nome completo",
+      "document": "CPF",
+      "confirm": "Confirmar reserva",
+      "confirming": "Reservando...",
+      "retry": "Tentar novamente",
+      "cancel": "Cancelar",
+      "errors": {
+        "nameRequired": "Informe o nome do passageiro.",
+        "documentRequired": "Informe o CPF do passageiro.",
+        "documentInvalid": "Informe um CPF válido."
+      }
+    },
+    "states": {
+      "reserved": "Reservado",
+      "reservedOrderId": "Pedido {orderId}"
+    },
+    "errors": {
+      "invalidCpf": "CPF inválido.",
+      "fieldRequired": "Preencha os dados corretamente.",
+      "invalidQuote": "Não foi possível reservar esta cotação. Atualize a busca e tente novamente.",
+      "network": "Não foi possível conectar. Verifique sua conexão e tente novamente.",
+      "generic": "Não foi possível concluir a reserva agora. Tente novamente."
     }
   }
 }

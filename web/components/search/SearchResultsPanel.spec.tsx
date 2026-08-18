@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithIntl } from '../../test/render-with-intl';
 import { SearchResultsPanel } from './SearchResultsPanel';
+import { formatMiles } from '@/lib/format/number';
 import type { SearchUiState } from '@/lib/search/types';
 
 describe('SearchResultsPanel', () => {
@@ -28,7 +29,9 @@ describe('SearchResultsPanel', () => {
 
     renderWithIntl(<SearchResultsPanel state={state} onRetry={vi.fn()} />);
 
-    expect(screen.getByText('1000 milhas')).toBeInTheDocument();
+    expect(screen.getByText(formatMiles(1000))).toBeInTheDocument();
+    expect(screen.getByText('milhas')).toBeInTheDocument();
+    expect(screen.getByText('Melhor oferta')).toBeInTheDocument();
     expect(
       screen.queryByText('Nem todos os fornecedores responderam a tempo.'),
     ).not.toBeInTheDocument();
@@ -45,7 +48,7 @@ describe('SearchResultsPanel', () => {
 
     expect(screen.getByText('Nem todos os fornecedores responderam a tempo.')).toBeInTheDocument();
     expect(screen.getByText('Fornecedor B')).toBeInTheDocument();
-    expect(screen.getByText('1000 milhas')).toBeInTheDocument();
+    expect(screen.getByText(formatMiles(1000))).toBeInTheDocument();
   });
 
   it('partial com quotes vazio → aviso de parcial e mensagem de "não encontramos cotações", sem lista', () => {
