@@ -62,39 +62,6 @@ describe('SearchForm', () => {
     expect(screen.getByText('Selecione a data.')).toBeInTheDocument();
   });
 
-  it('erro de origin desaparece assim que o campo é preenchido, sem novo submit', async () => {
-    const user = userEvent.setup();
-    const onSubmit = vi.fn();
-    renderWithIntl(<SearchForm onSubmit={onSubmit} disabled={false} />);
-
-    await user.selectOptions(screen.getByLabelText('Destino'), 'GIG');
-    await user.type(screen.getByLabelText('Data'), '2026-09-01');
-    await user.click(screen.getByRole('button', { name: 'Buscar' }));
-
-    expect(screen.getByText('Selecione a origem.')).toBeInTheDocument();
-
-    await user.selectOptions(screen.getByLabelText('Origem'), 'GRU');
-
-    expect(screen.queryByText('Selecione a origem.')).not.toBeInTheDocument();
-  });
-
-  it('erros de destination e date desaparecem assim que os campos são preenchidos', async () => {
-    const user = userEvent.setup();
-    const onSubmit = vi.fn();
-    renderWithIntl(<SearchForm onSubmit={onSubmit} disabled={false} />);
-
-    await user.click(screen.getByRole('button', { name: 'Buscar' }));
-
-    expect(screen.getByText('Selecione o destino.')).toBeInTheDocument();
-    expect(screen.getByText('Selecione a data.')).toBeInTheDocument();
-
-    await user.selectOptions(screen.getByLabelText('Destino'), 'GIG');
-    expect(screen.queryByText('Selecione o destino.')).not.toBeInTheDocument();
-
-    await user.type(screen.getByLabelText('Data'), '2026-09-01');
-    expect(screen.queryByText('Selecione a data.')).not.toBeInTheDocument();
-  });
-
   it('disabled=true desabilita o botão e os 3 campos', () => {
     renderWithIntl(<SearchForm onSubmit={vi.fn()} disabled />);
 

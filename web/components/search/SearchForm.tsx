@@ -47,11 +47,7 @@ export function SearchForm({ onSubmit, disabled }: SearchFormProps) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
-    >
+    <form onSubmit={handleSubmit} noValidate>
       <h1 className="text-2xl font-semibold">{t('title')}</h1>
 
       <div className="mt-4">
@@ -62,13 +58,8 @@ export function SearchForm({ onSubmit, disabled }: SearchFormProps) {
           id="origin"
           value={origin}
           disabled={disabled}
-          onChange={(event) => {
-            setOrigin(event.target.value);
-            if (event.target.value) {
-              setErrors((previous) => ({ ...previous, origin: undefined }));
-            }
-          }}
-          className="mt-1 w-full rounded-md border border-slate-300 p-2 disabled:bg-slate-50 disabled:opacity-50"
+          onChange={(event) => setOrigin(event.target.value)}
+          className="mt-1 rounded-md border border-slate-300 p-2"
         >
           <option value="" disabled>
             {t('selectPlaceholder')}
@@ -79,9 +70,7 @@ export function SearchForm({ onSubmit, disabled }: SearchFormProps) {
             </option>
           ))}
         </select>
-        <div className="mt-1 min-h-[1.25rem]">
-          {errors.origin && <p className="text-red-700">{errors.origin}</p>}
-        </div>
+        {errors.origin && <p className="mt-1 text-red-700">{errors.origin}</p>}
       </div>
 
       <div className="mt-4">
@@ -92,13 +81,8 @@ export function SearchForm({ onSubmit, disabled }: SearchFormProps) {
           id="destination"
           value={destination}
           disabled={disabled}
-          onChange={(event) => {
-            setDestination(event.target.value);
-            if (event.target.value) {
-              setErrors((previous) => ({ ...previous, destination: undefined }));
-            }
-          }}
-          className="mt-1 w-full rounded-md border border-slate-300 p-2 disabled:bg-slate-50 disabled:opacity-50"
+          onChange={(event) => setDestination(event.target.value)}
+          className="mt-1 rounded-md border border-slate-300 p-2"
         >
           <option value="" disabled>
             {t('selectPlaceholder')}
@@ -109,9 +93,7 @@ export function SearchForm({ onSubmit, disabled }: SearchFormProps) {
             </option>
           ))}
         </select>
-        <div className="mt-1 min-h-[1.25rem]">
-          {errors.destination && <p className="text-red-700">{errors.destination}</p>}
-        </div>
+        {errors.destination && <p className="mt-1 text-red-700">{errors.destination}</p>}
       </div>
 
       <div className="mt-4">
@@ -123,17 +105,10 @@ export function SearchForm({ onSubmit, disabled }: SearchFormProps) {
           type="date"
           value={date}
           disabled={disabled}
-          onChange={(event) => {
-            setDate(event.target.value);
-            if (event.target.value) {
-              setErrors((previous) => ({ ...previous, date: undefined }));
-            }
-          }}
-          className="mt-1 w-full rounded-md border border-slate-300 p-2 disabled:bg-slate-50 disabled:opacity-50"
+          onChange={(event) => setDate(event.target.value)}
+          className="mt-1 rounded-md border border-slate-300 p-2"
         />
-        <div className="mt-1 min-h-[1.25rem]">
-          {errors.date && <p className="text-red-700">{errors.date}</p>}
-        </div>
+        {errors.date && <p className="mt-1 text-red-700">{errors.date}</p>}
       </div>
 
       <button

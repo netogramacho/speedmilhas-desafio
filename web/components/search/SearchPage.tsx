@@ -9,9 +9,7 @@ export function SearchPage() {
 
   return (
     <main className="mx-auto max-w-2xl p-8">
-      <div className="max-w-sm">
-        <SearchForm onSubmit={submit} disabled={uiState.kind === 'loading'} />
-      </div>
+      <SearchForm onSubmit={submit} disabled={uiState.kind === 'loading'} />
       <SearchResultsPanel state={uiState} onRetry={retry} />
     </main>
   );
